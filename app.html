@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSION 2.0 - FIXED AUTH - If you see this in View Source, you have the new version! -->
+<!-- VERSION 2.1 - FIXED HOVER GLITCHES & STREAK LOGGING - If you see this in View Source, you have the new version! -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -348,13 +348,16 @@
     // ============ STREAK MANAGEMENT ============
     window.updateStreak = function() {
       const today = new Date().toDateString();
+      console.log('📊 Updating streak. Today:', today, 'Last study:', window.state.lastStudyDate);
       
       if (!window.state.lastStudyDate) {
         // First time studying
         window.state.streak = 1;
         window.state.lastStudyDate = today;
+        console.log('🎉 First study session! Streak started:', window.state.streak);
       } else if (window.state.lastStudyDate === today) {
         // Already studied today, keep streak
+        console.log('✅ Already studied today. Streak maintained:', window.state.streak);
         return;
       } else {
         const lastDate = new Date(window.state.lastStudyDate);
@@ -362,20 +365,29 @@
         const diffTime = Math.abs(currentDate - lastDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
+        console.log('📅 Days since last study:', diffDays);
+        
         if (diffDays === 1) {
           // Consecutive day, increment streak
           window.state.streak++;
+          console.log('🔥 Consecutive day! Streak increased to:', window.state.streak);
         } else if (diffDays > 1) {
           // Streak broken, reset to 1
           window.state.streak = 1;
+          console.log('💔 Streak broken. Reset to:', window.state.streak);
         }
         
         window.state.lastStudyDate = today;
       }
+      
+      console.log('📈 Final streak value:', window.state.streak);
     }
     
     window.checkStreak = function() {
-      if (!window.state.lastStudyDate) return;
+      if (!window.state.lastStudyDate) {
+        console.log('⚠️ No previous study date found');
+        return;
+      }
       
       const today = new Date().toDateString();
       const lastDate = new Date(window.state.lastStudyDate);
@@ -383,10 +395,15 @@
       const diffTime = Math.abs(currentDate - lastDate);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
+      console.log('🔍 Checking streak on login. Days since last study:', diffDays);
+      
       // If more than 1 day has passed, reset streak
       if (diffDays > 1) {
+        console.log('💔 Streak expired. Resetting from', window.state.streak, 'to 0');
         window.state.streak = 0;
         window.saveState();
+      } else {
+        console.log('✅ Streak still active:', window.state.streak);
       }
     }
 
@@ -820,12 +837,11 @@
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 20px;
-      transition: all 0.3s ease;
+      transition: border-color 0.3s ease;
     }
 
     .widget:hover {
-      border-color: rgba(255,255,255,0.18);
-      transform: translateY(-2px);
+      border-color: rgba(255,255,255,0.24);
     }
   </style>
 </head>
@@ -1110,7 +1126,7 @@
 
   <!-- Custom Timer Modal -->
   <div id="customTimerModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="padding: 32px;">
       <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">Set Custom Timer</h2>
       <div style="margin-bottom: 24px;">
         <label style="display: block; margin-bottom: 8px; color: var(--muted); font-size: 14px;">Minutes (1-180)</label>
