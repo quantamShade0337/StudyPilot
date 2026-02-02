@@ -35,6 +35,9 @@ function navigate(page) {
       content.innerHTML = renderNotes();
       renderNoteList();
       break;
+    case 'studygroup':
+      content.innerHTML = renderStudyGroup();
+      break;
   }
   
   lucide.createIcons();
@@ -757,6 +760,554 @@ function setCustomTimer() {
   } else {
     alert('Please enter a valid time between 1 and 180 minutes');
   }
+}
+
+// ============ STUDY GROUP FUNCTIONS ============
+function renderStudyGroup() {
+  const isInGroup = state.studyGroup.code !== null;
+  
+  if (!isInGroup) {
+    return `
+      <div style="margin-bottom: 24px;">
+        <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Study Groups 👥</h1>
+        <p style="color: var(--muted); font-size: 15px;">Study together with friends using shared timers</p>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; max-width: 900px;">
+        
+        <!-- Create Group -->
+        <div class="card" style="padding: 32px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2)); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+              <i data-lucide="users-plus" style="width: 32px; height: 32px; color: var(--brand-blue);"></i>
+            </div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Create Study Group</h3>
+            <p style="color: var(--muted); font-size: 14px;">Start a new focus session and invite friends</p>
+          </div>
+          <button onclick="createStudyGroup()" class="btn btn-primary" style="width: 100%; padding: 14px;">
+            <i data-lucide="plus" style="display: inline-block; vertical-align: middle; width: 16px; height: 16px;"></i>
+            <span style="vertical-align: middle; margin-left: 8px;">Create Group</span>
+          </button>
+        </div>
+        
+        <!-- Join Group -->
+        <div class="card" style="padding: 32px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, rgba(20,184,166,0.2), rgba(16,185,129,0.2)); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+              <i data-lucide="user-plus" style="width: 32px; height: 32px; color: var(--brand-teal);"></i>
+            </div>
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Join Study Group</h3>
+            <p style="color: var(--muted); font-size: 14px;">Enter a group code to join friends</p>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <input type="text" id="groupCodeInput" class="input" placeholder="Enter 6-digit code" maxlength="6" style="text-align: center; font-size: 20px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase;">
+          </div>
+          <button onclick="joinStudyGroup()" class="btn btn-success" style="width: 100%; padding: 14px;">
+            <i data-lucide="log-in" style="display: inline-block; vertical-align: middle; width: 16px; height: 16px;"></i>
+            <span style="vertical-align: middle; margin-left: 8px;">Join Group</span>
+          </button>
+        </div>
+        
+      </div>
+      
+      <!-- Info Section -->
+      <div class="widget" style="margin-top: 32px; max-width: 900px;">
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">How it works</h3>
+        <div style="display: grid; gap: 16px;">
+          <div style="display: flex; gap: 12px;">
+            <div style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center;">
+              <span style="font-weight: 700; color: var(--brand-blue);">1</span>
+            </div>
+            <div>
+              <p style="font-weight: 600; margin-bottom: 4px;">Create or Join a Group</p>
+              <p style="color: var(--muted); font-size: 14px;">Start a new study group or join an existing one with a code</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <div style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center;">
+              <span style="font-weight: 700; color: var(--brand-blue);">2</span>
+            </div>
+            <div>
+              <p style="font-weight: 600; margin-bottom: 4px;">Synchronized Timer</p>
+              <p style="color: var(--muted); font-size: 14px;">The timer syncs across all group members in real-time</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <div style="flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center;">
+              <span style="font-weight: 700; color: var(--brand-blue);">3</span>
+            </div>
+            <div>
+              <p style="font-weight: 600; margin-bottom: 4px;">Study Together</p>
+              <p style="color: var(--muted); font-size: 14px;">Stay motivated by studying alongside your friends</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    // In a group
+    const membersList = state.studyGroup.members.map(member => `
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.04); border-radius: 10px; margin-bottom: 8px;">
+        <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
+          ${member.email.charAt(0).toUpperCase()}
+        </div>
+        <div style="flex: 1;">
+          <div style="font-weight: 600; font-size: 14px;">${member.email.split('@')[0]}</div>
+          <div style="color: var(--muted-2); font-size: 12px;">${member.email}</div>
+        </div>
+        ${state.studyGroup.isHost && member.id !== state.currentUser.uid ? `
+          <button onclick="removeMember('${member.id}')" class="delete-btn">
+            <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+          </button>
+        ` : ''}
+      </div>
+    `).join('');
+    
+    return `
+      <div style="margin-bottom: 24px;">
+        <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Study Group Session 🎯</h1>
+        <p style="color: var(--muted); font-size: 15px;">Studying together with ${state.studyGroup.members.length} member${state.studyGroup.members.length !== 1 ? 's' : ''}</p>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px;">
+        
+        <!-- Timer -->
+        <div class="card" style="padding: 32px;">
+          <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 24px; text-align: center;">Group Timer</h3>
+          <div id="groupTimerDisplay" style="font-size: 56px; font-weight: 800; font-family: 'Outfit', sans-serif; text-align: center; background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 24px;">
+            ${String(state.timer.minutes).padStart(2, '0')}:${String(state.timer.seconds).padStart(2, '0')}
+          </div>
+          ${state.studyGroup.isHost ? `
+            <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+              <button id="groupStartTimer" onclick="toggleGroupTimer()" class="btn btn-primary" style="flex: 1; padding: 14px;">
+                <i data-lucide="play" style="display: inline-block; vertical-align: middle;"></i>
+                <span style="vertical-align: middle; margin-left: 8px;">Start</span>
+              </button>
+              <button onclick="resetGroupTimer()" class="btn btn-secondary" style="padding: 14px;">
+                <i data-lucide="rotate-ccw"></i>
+              </button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+              <button onclick="setGroupTimer(15)" class="btn btn-secondary" style="padding: 10px; font-size: 13px;">15m</button>
+              <button onclick="setGroupTimer(25)" class="btn btn-secondary" style="padding: 10px; font-size: 13px;">25m</button>
+              <button onclick="setGroupTimer(45)" class="btn btn-secondary" style="padding: 10px; font-size: 13px;">45m</button>
+            </div>
+          ` : `
+            <p style="text-align: center; color: var(--muted); font-size: 14px;">The host controls the timer</p>
+          `}
+        </div>
+        
+        <!-- Group Info -->
+        <div class="card" style="padding: 32px;">
+          <div style="margin-bottom: 24px;">
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px;">Group Code</h3>
+            <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1)); border-radius: 12px; border: 1px solid rgba(99,102,241,0.2);">
+              <div style="font-size: 32px; font-weight: 800; letter-spacing: 6px; font-family: 'Outfit', sans-serif; color: var(--text);">${state.studyGroup.code}</div>
+              <button onclick="copyGroupCode()" class="btn btn-secondary" style="margin-top: 12px; padding: 8px 16px; font-size: 13px;">
+                <i data-lucide="copy" style="display: inline-block; vertical-align: middle; width: 14px; height: 14px;"></i>
+                <span style="vertical-align: middle; margin-left: 6px;">Copy Code</span>
+              </button>
+            </div>
+          </div>
+          <div>
+            <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Members (${state.studyGroup.members.length})</h4>
+            <div id="membersList" style="max-height: 300px; overflow-y: auto;">
+              ${membersList}
+            </div>
+          </div>
+        </div>
+        
+      </div>
+      
+      <div style="margin-top: 24px;">
+        <button onclick="leaveStudyGroup()" class="btn btn-danger" style="padding: 12px 24px;">
+          <i data-lucide="log-out" style="display: inline-block; vertical-align: middle; width: 16px; height: 16px;"></i>
+          <span style="vertical-align: middle; margin-left: 8px;">${state.studyGroup.isHost ? 'End Session' : 'Leave Group'}</span>
+        </button>
+      </div>
+    `;
+  }
+}
+
+function generateGroupCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+async function createStudyGroup() {
+  if (!state.currentUser) return;
+  
+  const code = generateGroupCode();
+  const fb = window.firebaseReady;
+  
+  try {
+    // Create group in Firebase
+    const groupRef = fb.ref(fb.database, 'studyGroups/' + code);
+    await fb.set(groupRef, {
+      host: state.currentUser.uid,
+      createdAt: new Date().toISOString(),
+      timer: {
+        minutes: 25,
+        seconds: 0,
+        isRunning: false
+      },
+      members: {
+        [state.currentUser.uid]: {
+          id: state.currentUser.uid,
+          email: state.currentUser.email,
+          joinedAt: new Date().toISOString()
+        }
+      }
+    });
+    
+    state.studyGroup.code = code;
+    state.studyGroup.isHost = true;
+    state.studyGroup.members = [{
+      id: state.currentUser.uid,
+      email: state.currentUser.email
+    }];
+    
+    // Listen for changes
+    listenToGroup(code);
+    
+    navigate('studygroup');
+    lucide.createIcons();
+    
+  } catch (error) {
+    console.error('Error creating group:', error);
+    alert('Failed to create study group. Please try again.');
+  }
+}
+
+async function joinStudyGroup() {
+  const code = document.getElementById('groupCodeInput').value.trim().toUpperCase();
+  
+  if (!code || code.length !== 6) {
+    alert('Please enter a valid 6-digit code');
+    return;
+  }
+  
+  if (!state.currentUser) return;
+  
+  const fb = window.firebaseReady;
+  
+  try {
+    // Check if group exists
+    const groupRef = fb.ref(fb.database, 'studyGroups/' + code);
+    const snapshot = await fb.get(groupRef);
+    
+    if (!snapshot.exists()) {
+      alert('Group not found. Please check the code and try again.');
+      return;
+    }
+    
+    // Add user to group
+    const memberRef = fb.ref(fb.database, 'studyGroups/' + code + '/members/' + state.currentUser.uid);
+    await fb.set(memberRef, {
+      id: state.currentUser.uid,
+      email: state.currentUser.email,
+      joinedAt: new Date().toISOString()
+    });
+    
+    state.studyGroup.code = code;
+    state.studyGroup.isHost = false;
+    
+    // Listen for changes
+    listenToGroup(code);
+    
+    navigate('studygroup');
+    lucide.createIcons();
+    
+  } catch (error) {
+    console.error('Error joining group:', error);
+    alert('Failed to join study group. Please try again.');
+  }
+}
+
+function listenToGroup(code) {
+  const fb = window.firebaseReady;
+  const groupRef = fb.ref(fb.database, 'studyGroups/' + code);
+  
+  // Clean up old listener
+  if (state.studyGroup.listener) {
+    state.studyGroup.listener();
+  }
+  
+  // Set up new listener
+  state.studyGroup.listener = fb.onValue(groupRef, (snapshot) => {
+    if (!snapshot.exists()) {
+      // Group was deleted
+      alert('The study group has ended.');
+      leaveStudyGroup();
+      return;
+    }
+    
+    const data = snapshot.val();
+    
+    // Update members
+    state.studyGroup.members = Object.values(data.members || {});
+    
+    // Update timer
+    if (data.timer) {
+      state.timer.minutes = data.timer.minutes;
+      state.timer.seconds = data.timer.seconds;
+      state.timer.isRunning = data.timer.isRunning;
+      
+      updateGroupTimerDisplay();
+      
+      // If timer is running and we're not the host, sync it
+      if (data.timer.isRunning && !state.studyGroup.isHost) {
+        if (!state.timer.interval) {
+          startGroupTimerSync();
+        }
+      } else if (!data.timer.isRunning && state.timer.interval && !state.studyGroup.isHost) {
+        clearInterval(state.timer.interval);
+        state.timer.interval = null;
+      }
+    }
+    
+    // Update UI if on study group page
+    if (state.currentPage === 'studygroup') {
+      const membersList = document.getElementById('membersList');
+      if (membersList) {
+        membersList.innerHTML = state.studyGroup.members.map(member => `
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.04); border-radius: 10px; margin-bottom: 8px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
+              ${member.email.charAt(0).toUpperCase()}
+            </div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; font-size: 14px;">${member.email.split('@')[0]}</div>
+              <div style="color: var(--muted-2); font-size: 12px;">${member.email}</div>
+            </div>
+            ${state.studyGroup.isHost && member.id !== state.currentUser.uid ? `
+              <button onclick="removeMember('${member.id}')" class="delete-btn">
+                <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+              </button>
+            ` : ''}
+          </div>
+        `).join('');
+        lucide.createIcons();
+      }
+    }
+  });
+}
+
+function updateGroupTimerDisplay() {
+  const display = document.getElementById('groupTimerDisplay');
+  if (display) {
+    display.textContent = `${String(state.timer.minutes).padStart(2, '0')}:${String(state.timer.seconds).padStart(2, '0')}`;
+  }
+}
+
+function startGroupTimerSync() {
+  state.timer.interval = setInterval(() => {
+    if (state.timer.seconds === 0) {
+      if (state.timer.minutes === 0) {
+        clearInterval(state.timer.interval);
+        state.timer.interval = null;
+        state.timer.isRunning = false;
+        alert('Timer complete! Great work! 🎉');
+        return;
+      }
+      state.timer.minutes--;
+      state.timer.seconds = 59;
+    } else {
+      state.timer.seconds--;
+    }
+    updateGroupTimerDisplay();
+  }, 1000);
+}
+
+async function toggleGroupTimer() {
+  if (!state.studyGroup.isHost) return;
+  
+  const fb = window.firebaseReady;
+  const timerRef = fb.ref(fb.database, 'studyGroups/' + state.studyGroup.code + '/timer');
+  
+  if (state.timer.isRunning) {
+    // Stop timer
+    clearInterval(state.timer.interval);
+    state.timer.interval = null;
+    state.timer.isRunning = false;
+    
+    await fb.update(timerRef, {
+      isRunning: false,
+      minutes: state.timer.minutes,
+      seconds: state.timer.seconds
+    });
+    
+    updateGroupTimerButton('play', 'Start');
+  } else {
+    // Start timer
+    state.timer.isRunning = true;
+    
+    await fb.update(timerRef, {
+      isRunning: true,
+      minutes: state.timer.minutes,
+      seconds: state.timer.seconds
+    });
+    
+    state.timer.interval = setInterval(async () => {
+      if (state.timer.seconds === 0) {
+        if (state.timer.minutes === 0) {
+          clearInterval(state.timer.interval);
+          state.timer.interval = null;
+          state.timer.isRunning = false;
+          
+          await fb.update(timerRef, {
+            isRunning: false,
+            minutes: 0,
+            seconds: 0
+          });
+          
+          // Update streak for all group members
+          state.totalSessions += 1;
+          if (window.updateStreak) {
+            window.updateStreak();
+          }
+          saveState();
+          
+          alert('Timer complete! Great work! 🎉');
+          updateGroupTimerButton('play', 'Start');
+          return;
+        }
+        state.timer.minutes--;
+        state.timer.seconds = 59;
+      } else {
+        state.timer.seconds--;
+      }
+      
+      // Update Firebase every second
+      await fb.update(timerRef, {
+        minutes: state.timer.minutes,
+        seconds: state.timer.seconds
+      });
+      
+      updateGroupTimerDisplay();
+    }, 1000);
+    
+    updateGroupTimerButton('pause', 'Pause');
+  }
+}
+
+function updateGroupTimerButton(icon, text) {
+  const btn = document.getElementById('groupStartTimer');
+  if (btn) {
+    btn.innerHTML = `<i data-lucide="${icon}" style="display: inline-block; vertical-align: middle;"></i><span style="vertical-align: middle; margin-left: 8px;">${text}</span>`;
+    lucide.createIcons();
+  }
+}
+
+async function resetGroupTimer() {
+  if (!state.studyGroup.isHost) return;
+  
+  const fb = window.firebaseReady;
+  const timerRef = fb.ref(fb.database, 'studyGroups/' + state.studyGroup.code + '/timer');
+  
+  clearInterval(state.timer.interval);
+  state.timer.interval = null;
+  state.timer.isRunning = false;
+  state.timer.minutes = 25;
+  state.timer.seconds = 0;
+  
+  await fb.update(timerRef, {
+    isRunning: false,
+    minutes: 25,
+    seconds: 0
+  });
+  
+  updateGroupTimerDisplay();
+  updateGroupTimerButton('play', 'Start');
+}
+
+async function setGroupTimer(minutes) {
+  if (!state.studyGroup.isHost) return;
+  
+  const fb = window.firebaseReady;
+  const timerRef = fb.ref(fb.database, 'studyGroups/' + state.studyGroup.code + '/timer');
+  
+  clearInterval(state.timer.interval);
+  state.timer.interval = null;
+  state.timer.isRunning = false;
+  state.timer.minutes = minutes;
+  state.timer.seconds = 0;
+  
+  await fb.update(timerRef, {
+    isRunning: false,
+    minutes: minutes,
+    seconds: 0
+  });
+  
+  updateGroupTimerDisplay();
+  updateGroupTimerButton('play', 'Start');
+}
+
+async function leaveStudyGroup() {
+  if (!state.studyGroup.code) return;
+  
+  const fb = window.firebaseReady;
+  
+  try {
+    if (state.studyGroup.isHost) {
+      // Delete entire group
+      const groupRef = fb.ref(fb.database, 'studyGroups/' + state.studyGroup.code);
+      await fb.remove(groupRef);
+    } else {
+      // Remove self from group
+      const memberRef = fb.ref(fb.database, 'studyGroups/' + state.studyGroup.code + '/members/' + state.currentUser.uid);
+      await fb.remove(memberRef);
+    }
+    
+    // Clean up listener
+    if (state.studyGroup.listener) {
+      state.studyGroup.listener();
+    }
+    
+    // Clear timer
+    clearInterval(state.timer.interval);
+    state.timer.interval = null;
+    
+    // Reset state
+    state.studyGroup.code = null;
+    state.studyGroup.isHost = false;
+    state.studyGroup.members = [];
+    state.studyGroup.listener = null;
+    state.timer.isRunning = false;
+    state.timer.minutes = 25;
+    state.timer.seconds = 0;
+    
+    navigate('studygroup');
+    lucide.createIcons();
+    
+  } catch (error) {
+    console.error('Error leaving group:', error);
+    alert('Failed to leave study group.');
+  }
+}
+
+async function removeMember(memberId) {
+  if (!state.studyGroup.isHost) return;
+  
+  const fb = window.firebaseReady;
+  const memberRef = fb.ref(fb.database, 'studyGroups/' + state.studyGroup.code + '/members/' + memberId);
+  
+  try {
+    await fb.remove(memberRef);
+  } catch (error) {
+    console.error('Error removing member:', error);
+  }
+}
+
+function copyGroupCode() {
+  navigator.clipboard.writeText(state.studyGroup.code).then(() => {
+    alert('Group code copied to clipboard!');
+  }).catch(() => {
+    alert('Failed to copy code. Code: ' + state.studyGroup.code);
+  });
 }
 
 // Initialize on page load
