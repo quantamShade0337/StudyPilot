@@ -892,6 +892,10 @@ function renderStudyGroup() {
               <button onclick="setGroupTimer(25)" class="btn btn-secondary" style="padding: 10px; font-size: 13px;">25m</button>
               <button onclick="setGroupTimer(45)" class="btn btn-secondary" style="padding: 10px; font-size: 13px;">45m</button>
             </div>
+            <button onclick="openGroupCustomTimer()" class="btn btn-secondary" style="width: 100%; padding: 10px; font-size: 13px; margin-top: 8px;">
+              <i data-lucide="clock" style="display: inline-block; vertical-align: middle; width: 14px; height: 14px;"></i>
+              <span style="vertical-align: middle; margin-left: 6px;">Custom Time</span>
+            </button>
           ` : `
             <p style="text-align: center; color: var(--muted); font-size: 14px;">The host controls the timer</p>
           `}
@@ -1308,6 +1312,32 @@ function copyGroupCode() {
   }).catch(() => {
     alert('Failed to copy code. Code: ' + state.studyGroup.code);
   });
+}
+
+function openGroupCustomTimer() {
+  const modal = document.getElementById('groupCustomTimerModal');
+  if (modal) modal.classList.add('active');
+}
+
+function closeGroupCustomTimer() {
+  const modal = document.getElementById('groupCustomTimerModal');
+  if (modal) modal.classList.remove('active');
+}
+
+async function setGroupCustomTimer() {
+  if (!state.studyGroup.isHost) return;
+  
+  const input = document.getElementById('groupCustomMinutesInput');
+  if (!input) return;
+  
+  const minutes = parseInt(input.value);
+  if (minutes && minutes > 0 && minutes <= 180) {
+    await setGroupTimer(minutes);
+    closeGroupCustomTimer();
+    input.value = '';
+  } else {
+    alert('Please enter a valid time between 1 and 180 minutes');
+  }
 }
 
 // Initialize on page load
