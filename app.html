@@ -1163,6 +1163,34 @@
     </div>
   </div>
 
+  <!-- Group Custom Timer Modal -->
+  <div id="groupCustomTimerModal" class="modal">
+    <div class="modal-content" style="padding: 32px;">
+      <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">Set Custom Group Timer</h2>
+      <div style="margin-bottom: 24px;">
+        <label style="display: block; margin-bottom: 8px; color: var(--muted); font-size: 14px;">Minutes (1-180)</label>
+        <input 
+          type="number" 
+          id="groupCustomMinutesInput" 
+          class="input" 
+          placeholder="e.g., 30" 
+          min="1" 
+          max="180"
+          style="width: 100%; padding: 12px; font-size: 16px;"
+        />
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <button onclick="setGroupCustomTimer()" class="btn btn-primary" style="flex: 1; padding: 12px;">
+          <i data-lucide="check" style="display: inline-block; vertical-align: middle; width: 16px; height: 16px;"></i>
+          <span style="vertical-align: middle; margin-left: 8px;">Set Timer</span>
+        </button>
+        <button onclick="closeGroupCustomTimer()" class="btn btn-secondary" style="flex: 1; padding: 12px;">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js?v=2"></script>
 </body>
 </html>
