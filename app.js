@@ -943,15 +943,31 @@ function generateGroupCode() {
 }
 
 async function createStudyGroup() {
-  if (!state.currentUser) return;
+  if (!state.currentUser) {
+    alert('You must be logged in to create a study group');
+    return;
+  }
+  
+  console.log('Creating study group...');
+  console.log('Current user:', state.currentUser.uid, state.currentUser.email);
   
   const code = generateGroupCode();
+  console.log('Generated code:', code);
+  
   const fb = window.firebaseReady;
+  
+  if (!fb || !fb.database) {
+    alert('Firebase is not ready. Please refresh the page.');
+    console.error('Firebase not ready:', fb);
+    return;
+  }
   
   try {
     // Create group in Firebase
     const groupRef = fb.ref(fb.database, 'studyGroups/' + code);
-    await fb.set(groupRef, {
+    console.log('Creating group at path: studyGroups/' + code);
+    
+    const groupData = {
       host: state.currentUser.uid,
       createdAt: new Date().toISOString(),
       timer: {
@@ -966,7 +982,12 @@ async function createStudyGroup() {
           joinedAt: new Date().toISOString()
         }
       }
-    });
+    };
+    
+    console.log('Group data:', groupData);
+    
+    await fb.set(groupRef, groupData);
+    console.log('✅ Group created successfully!');
     
     state.studyGroup.code = code;
     state.studyGroup.isHost = true;
@@ -982,8 +1003,16 @@ async function createStudyGroup() {
     lucide.createIcons();
     
   } catch (error) {
-    console.error('Error creating group:', error);
-    alert('Failed to create study group. Please try again.');
+    console.error('❌ Error creating group:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Full error:', JSON.stringify(error, null, 2));
+    
+    if (error.code === 'PERMISSION_DENIED') {
+      alert('Permission denied. Please check your Firebase database rules.\n\nYou need to allow authenticated users to write to studyGroups.');
+    } else {
+      alert('Failed to create study group: ' + error.message + '\n\nCheck the browser console for more details.');
+    }
   }
 }
 
