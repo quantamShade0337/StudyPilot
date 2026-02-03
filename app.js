@@ -866,7 +866,7 @@ function renderStudyGroup() {
     return `
       <div style="margin-bottom: 24px;">
         <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Study Group Session 🎯</h1>
-        <p style="color: var(--muted); font-size: 15px;">Studying together with ${state.studyGroup.members.length} member${state.studyGroup.members.length !== 1 ? 's' : ''}</p>
+        <p style="color: var(--muted); font-size: 15px;">Studying together with ${state.studyGroup.members.length - 1} other${state.studyGroup.members.length - 1 !== 1 ? 's' : ''}</p>
       </div>
       
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px;">
